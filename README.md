@@ -13,9 +13,11 @@ The **Dataspace Management** is the modernised portal of Eclipse Tractus-X. This
 (OSP) registers, reviews and onboards companies to a dataspace such as Catena-X, and manages their people, technical
 users, credentials, connectors, offers and subscriptions afterwards.
 
-> **Status:** the repository is being set up. The source code is migrated from the code base of the Tractus-X
-> Hackathon II ([tx-arena-events/portal-backend](https://github.com/tx-arena-events/portal-backend)), the module
-> specifications from [tx-arena-events/portal-backend-spec](https://github.com/tx-arena-events/portal-backend-spec).
+> **Status:** the code base of the Tractus-X Hackathon II scaffold is in the repository: every module of the
+> specifications in [tx-arena-events/portal-backend-spec](https://github.com/tx-arena-events/portal-backend-spec) is
+> mounted as a stand-in that a team replaces with its implementation. Hackathon teams start with the
+> [developer guide of the scaffold](docs/developers/hackathon-scaffold.md) and the rules for coding agents in
+> [AGENTS.md](AGENTS.md).
 
 ## Leading product repository
 
@@ -78,11 +80,14 @@ See the [building block view](docs/architecture/05_building_block_view.md) for t
 | [`Dockerfile`](Dockerfile), [`DOCKER_NOTICE.md`](DOCKER_NOTICE.md) | Container image and its notice for DockerHub |
 | [`.github`](.github) | Workflows (build, Helm test and release, CodeQL, KICS, Trivy, TruffleHog, Eclipse Dash), Dependabot, templates |
 | [`.tractusx`](.tractusx) | Metadata file for the Tractus-X release checks |
-
-With the migration of the source code, the code base of the service is added at the root of the repository:
-`portal_common/` (shared building blocks), `modules/<module>/` (one folder per module), `scaffold/` (the installation
-app), `config/` (installation settings), `spec/` (module specifications read at start-up), `iam/` (test Portal IAM),
-`tests/`, `pyproject.toml` and `uv.lock`.
+| [`portal_common/`](portal_common) | Shared building blocks: tokens, Problem Details, settings, neighbours, events, SSE, stand-ins |
+| [`modules/<module>/`](modules) | One folder per module of the spec (`interface.py`, `router.py`) |
+| [`scaffold/`](scaffold) | The installation app (`create_app`) and the module registry |
+| [`config/`](config) | Settings and module configuration per installation (OSP A, OSP B) |
+| [`iam/`](iam/README.md), [`ebw/`](ebw/README.md) | Test Portal IAM (Keycloak) and the EBW stack for tests with a real wallet |
+| [`tools/`](tools), [`testdata/`](testdata), [`tests/`](tests) | Test tools, test data (FRAMEWORK 7a) and tests |
+| [`demo.py`](demo.py), [`check.py`](check.py) | Acceptance demo of scenarios 1 to 4 and the setup check |
+| `spec/` | Clone of the module specifications, read at start-up (not committed) |
 
 ## Installation
 
@@ -117,17 +122,23 @@ registration at the CSP, dataspace wallet and credentials (see the [runtime view
 ### Local development
 
 ```shell
+git clone https://github.com/tx-arena-events/portal-backend-spec.git spec   # read-only, not committed
 uv sync                    # Python 3.12 and the dependencies
 uv run pytest -q           # all tests
 docker compose up -d       # test Portal IAM (Keycloak)
+uv run python demo.py      # CSP stand-in, OSP A and OSP B, scenarios 1 to 4; exit code 0 = green
 uv run uvicorn --factory scaffold.app:create_app --port 8000
 ```
+
+`uv run python check.py` checks the whole setup. The [developer guide of the scaffold](docs/developers/hackathon-scaffold.md)
+explains the modules, the call convention, the test data and how a team replaces its module.
 
 ## Documentation
 
 | Document | Content |
 |---|---|
 | [docs/README.md](docs/README.md) | Overview of the documentation |
+| [Hackathon scaffold](docs/developers/hackathon-scaffold.md) | Developer guide: modules, call convention, test data, demo |
 | [Architecture](docs/architecture/README.md) | arc42: context, modules, flows, deployment, decisions |
 | [Admin guide](docs/admin/README.md) | Configuration, secrets, operation, upgrade |
 | [API](docs/api/README.md) | OpenAPI per module and of the installation |

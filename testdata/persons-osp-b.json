@@ -1,0 +1,8 @@
+{
+  "_comment": "Test persons of OSP B. FRAMEWORK 7a defines no persons for OSP B.",
+  "persons": [
+    { "_comment": "scaffold-only, not in FRAMEWORK 7a", "key": "gerd", "id": "5a1c0031-0000-4000-8000-000000000031", "givenName": "Gerd", "familyName": "Beispiel", "portalRoles": [], "state": "applicant without company; onboards Beispiel Werkzeugbau GmbH in scenario 4" },
+    { "_comment": "scaffold-only, not in FRAMEWORK 7a", "key": "rita", "id": "5a1c0032-0000-4000-8000-000000000032", "givenName": "Rita", "familyName": "Zweit", "portalRoles": ["OSP Reviewer", "OSP Admin"], "state": "OSP staff without company" },
+    { "_comment": "scaffold-only, not in FRAMEWORK 7a", "key": "ute", "id": "5a1c0033-0000-4000-8000-000000000033", "givenName": "Ute", "familyName": "Zweit", "portalRoles": ["OSP Reviewer"], "state": "second OSP Reviewer without company, for the four-eyes principle (C1-M3 6.4)" }
+  ]
+}

@@ -16,6 +16,8 @@ Further entry points:
 - [INSTALL.md](../INSTALL.md): installation with Helm
 - [Chart README](../charts/dataspace-mgm/README.md): all values of the Helm chart
 - [CHANGELOG.md](../CHANGELOG.md): changes per release
+- [Hackathon scaffold](developers/hackathon-scaffold.md): developer guide of the scaffold (modules, call convention, test data, demo)
+- [AGENTS.md](../AGENTS.md): rules for coding agents and the people who use them
 
 ## NOTICE
 
