@@ -41,6 +41,8 @@ with warnings.catch_warnings():   # starlette announces a successor of httpx for
 
 DEFAULT_TIMEOUT = 10.0
 _local: dict[str, object] = {}
+# One pooled client: keep-alive connections to the neighbours of a split-out module (ADR-0002)
+_pool = httpx.Client(limits=httpx.Limits(max_connections=100, max_keepalive_connections=20))
 
 
 def register_local(base_url: str, app) -> None:
@@ -62,7 +64,7 @@ def request(method: str, url: str, timeout: float = DEFAULT_TIMEOUT, **kw) -> ht
     """Like `httpx.request`; raises `httpx.HTTPError` on timeouts and connection errors."""
     base, app = _local_app(url)
     if app is None:
-        return httpx.request(method, url, timeout=timeout, **kw)
+        return _pool.request(method, url, timeout=timeout, **kw)
     # MINIMAL: one TestClient per call (thread-safe, starts a short-lived event loop thread);
     # upgrade: a pooled ASGI transport if call volume ever matters.
     client = TestClient(app, base_url=base, raise_server_exceptions=False)

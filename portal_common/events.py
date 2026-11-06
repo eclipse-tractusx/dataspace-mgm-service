@@ -55,6 +55,8 @@ import uuid
 import warnings
 from collections.abc import Callable
 
+from .event_forwarder import FORWARDER
+
 log = logging.getLogger("portal.events")
 FORBIDDEN_KEYS = ("secret", "password", "apikey", "token")
 SPECVERSION = "1.0"
@@ -190,6 +192,7 @@ class Relay:
         else:
             ev = cloudevent(module, type, data)
         self._enqueue(ev)
+        FORWARDER.submit(ev)   # to the other runtimes (EVENT_SINKS); nothing in a monolith
         return ev
 
     def receive(self, event: dict) -> tuple[dict, bool]:
@@ -278,6 +281,7 @@ class Relay:
             self._received.clear()
             self.log.clear()
             self.failures.clear()
+        FORWARDER.reset()
 
 
 RELAY = Relay()

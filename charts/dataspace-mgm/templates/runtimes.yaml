@@ -1,0 +1,182 @@
+#################################################################################
+#  Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+#  See the NOTICE file(s) distributed with this work for additional
+#  information regarding copyright ownership.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#  https://www.apache.org/licenses/LICENSE-2.0.
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#  License for the specific language governing permissions and limitations
+#  under the License.
+#
+#  AI Disclosure: This file was entirely AI-generated.
+#  The AI-generated portions are made available under CC0-1.0 and not subject
+#  to the project's license. The human contributor has reviewed and verified
+#  that the code is correct.
+#
+#  SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+#  Assisted-By: Claude Code (claude-opus-5-5)
+#################################################################################
+
+{{- /*
+One Deployment and Service per module runtime (ADR-0002): the image of the backend, `ENABLED_MODULES` selects
+the modules of the pod, `MODULE_URLS` and `EVENT_SINKS` connect the runtimes.
+*/ -}}
+{{- if .Values.runtimes.enabled }}
+{{- $secretName := include "dataspace-mgm.backend.secretName" . }}
+{{- $moduleUrls := include "dataspace-mgm.runtime.moduleUrls" . }}
+{{- range $rt := .Values.runtimes.items }}
+{{- $name := include "dataspace-mgm.runtime.fullname" (dict "ctx" $ "runtime" $rt) }}
+{{- $component := printf "runtime-%s" $rt.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "dataspace-mgm.labels" $ | nindent 4 }}
+    {{- include "dataspace-mgm.selectorLabels" (dict "ctx" $ "component" $component) | nindent 4 }}
+spec:
+  replicas: {{ default $.Values.runtimes.replicaCount $rt.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dataspace-mgm.selectorLabels" (dict "ctx" $ "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dataspace-mgm.labels" $ | nindent 8 }}
+        {{- include "dataspace-mgm.selectorLabels" (dict "ctx" $ "component" $component) | nindent 8 }}
+    spec:
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "dataspace-mgm.serviceAccountName" $ }}
+      automountServiceAccountToken: {{ $.Values.serviceAccount.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml $.Values.backend.podSecurityContext | nindent 8 }}
+      containers:
+        - name: runtime
+          image: {{ include "dataspace-mgm.image" (dict "image" $.Values.backend.image "ctx" $) | quote }}
+          imagePullPolicy: {{ $.Values.backend.image.pullPolicy }}
+          securityContext:
+            {{- toYaml $.Values.backend.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: ENABLED_MODULES
+              value: {{ join "," $rt.modules | quote }}
+            - name: BASE_URL
+              value: {{ printf "http://%s:%v" $name $.Values.runtimes.service.port | quote }}
+            - name: MODULE_URLS
+              value: {{ $moduleUrls | quote }}
+            - name: MODULE_URLS_DEFAULT
+              value: ""
+            - name: EVENT_SINKS
+              value: {{ include "dataspace-mgm.runtime.eventSinks" (dict "ctx" $ "runtime" $rt) | quote }}
+            - name: TEST_TOOLS
+              value: {{ $.Values.backend.testTools | toString | quote }}
+            {{- with $.Values.backend.iam.url }}
+            - name: IAM_URL
+              value: {{ . | quote }}
+            {{- end }}
+            - name: IAM_REALM
+              value: {{ $.Values.backend.iam.realm | quote }}
+            {{- with $.Values.backend.iam.issuer }}
+            - name: IAM_ISSUER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $.Values.backend.csp.url }}
+            - name: CSP_URL
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if $secretName }}
+            - name: SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: SERVICE_CLIENT_SECRET
+            {{- end }}
+            {{- range $key, $value := $.Values.backend.env }}
+            - name: {{ $key }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+            {{- range $key, $value := $rt.env }}
+            - name: {{ $key }}
+              value: {{ $value | toString | quote }}
+            {{- end }}
+          livenessProbe:
+            {{- toYaml $.Values.backend.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml $.Values.backend.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml (default $.Values.backend.resources $rt.resources) | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "dataspace-mgm.labels" $ | nindent 4 }}
+    {{- include "dataspace-mgm.selectorLabels" (dict "ctx" $ "component" $component) | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: {{ $.Values.runtimes.service.port }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "dataspace-mgm.selectorLabels" (dict "ctx" $ "component" $component) | nindent 4 }}
+{{- end }}
+{{- if $.Values.backend.ingress.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "dataspace-mgm.fullname" . }}-runtimes
+  labels:
+    {{- include "dataspace-mgm.labels" . | nindent 4 }}
+  {{- with .Values.backend.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with .Values.backend.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with .Values.backend.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    - host: {{ (first .Values.backend.ingress.hosts).host | quote }}
+      http:
+        paths:
+          {{- range $rt := .Values.runtimes.items }}
+          {{- $svc := include "dataspace-mgm.runtime.fullname" (dict "ctx" $ "runtime" $rt) }}
+          {{- range $m := $rt.modules }}
+          - path: /api/{{ $m }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $svc }}
+                port:
+                  name: http
+          {{- end }}
+          {{- end }}
+{{- end }}
+{{- end }}

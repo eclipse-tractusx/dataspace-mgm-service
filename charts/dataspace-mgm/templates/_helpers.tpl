@@ -151,3 +151,38 @@ Image of a component. Call with (dict "image" .Values.backend.image "ctx" $).
 {{- define "dataspace-mgm.image" -}}
 {{- printf "%s:%s" .image.repository (default .ctx.Chart.AppVersion .image.tag) }}
 {{- end }}
+
+{{/*
+Name of the Deployment and Service of one module runtime. Call with (dict "ctx" $ "runtime" $item).
+*/}}
+{{- define "dataspace-mgm.runtime.fullname" -}}
+{{- printf "%s-rt-%s" (include "dataspace-mgm.fullname" .ctx) .runtime.name | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
+{{/*
+`MODULE_URLS`: every module of every runtime -> the service of its runtime (JSON, FRAMEWORK 4.7).
+*/}}
+{{- define "dataspace-mgm.runtime.moduleUrls" -}}
+{{- $urls := dict }}
+{{- range $rt := .Values.runtimes.items }}
+{{- $svc := include "dataspace-mgm.runtime.fullname" (dict "ctx" $ "runtime" $rt) }}
+{{- range $m := $rt.modules }}
+{{- $_ := set $urls $m (printf "http://%s:%v" $svc $.Values.runtimes.service.port) }}
+{{- end }}
+{{- end }}
+{{- toJson $urls }}
+{{- end }}
+
+{{/*
+`EVENT_SINKS` of one runtime: the services of all other runtimes (ADR-0002).
+*/}}
+{{- define "dataspace-mgm.runtime.eventSinks" -}}
+{{- $self := .runtime.name }}
+{{- $sinks := list }}
+{{- range $rt := .ctx.Values.runtimes.items }}
+{{- if ne $rt.name $self }}
+{{- $sinks = append $sinks (printf "http://%s:%v" (include "dataspace-mgm.runtime.fullname" (dict "ctx" $.ctx "runtime" $rt)) $.ctx.Values.runtimes.service.port) }}
+{{- end }}
+{{- end }}
+{{- join "," $sinks }}
+{{- end }}
