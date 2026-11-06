@@ -97,6 +97,20 @@ spec:
                   name: {{ $secretName }}
                   key: SERVICE_CLIENT_SECRET
             {{- end }}
+            - name: API_AUTH_ENABLED
+              value: {{ .Values.backend.authorization.enabled | toString | quote }}
+            {{- if .Values.backend.authorization.enabled }}
+            - name: API_KEY_HEADER
+              value: {{ .Values.backend.authorization.apiKey.header | quote }}
+            {{- $apiKeySecret := include "dataspace-mgm.backend.apiKeySecret" . }}
+            {{- if $apiKeySecret }}
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $apiKeySecret }}
+                  key: {{ .Values.backend.authorization.apiKey.secretKey }}
+            {{- end }}
+            {{- end }}
             {{- range $name, $value := .Values.backend.env }}
             - name: {{ $name }}
               value: {{ $value | toString | quote }}

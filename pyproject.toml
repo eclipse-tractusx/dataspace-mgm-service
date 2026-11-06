@@ -15,6 +15,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pyjwt[crypto]>=2.9",
     "python-multipart>=0.0.9",
+    "tractusx-sdk>=0.8.3,<0.9",
 ]
 
 [dependency-groups]
@@ -29,3 +30,6 @@ filterwarnings = ["ignore:Using `httpx` with `starlette.testclient`"]
 
 [tool.uv]
 package = false
+# tractusx-sdk 0.8.x pins fastapi <0.121 and uvicorn <0.36.1; the service runs newer versions and uses
+# only the API key manager of the SDK, which needs nothing but fastapi.Request (ADR-0002).
+override-dependencies = ["fastapi>=0.115", "uvicorn>=0.30"]

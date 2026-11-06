@@ -75,6 +75,11 @@ helm uninstall dataspace-mgm --namespace dataspace-mgm
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
 | backend.affinity | object | `{}` | Affinity of the backend pods |
+| backend.authorization.apiKey.existingSecret | string | `""` | Name of an existing secret with the API key (`API_KEY`). If empty and `value` is set, the chart creates it |
+| backend.authorization.apiKey.header | string | `"X-Api-Key"` | Header that carries the API key (`API_KEY_HEADER`) |
+| backend.authorization.apiKey.secretKey | string | `"API_KEY"` | Key of the API key in the secret |
+| backend.authorization.apiKey.value | string | `""` | The API key, at least 32 characters; prefer `existingSecret` in operated installations |
+| backend.authorization.enabled | bool | `false` | Requires an API key on the APIs of the installation under `/api/v1` (`API_AUTH_ENABLED`, ADR-0002). Disabled by default; the controllers keep their own authorization (e.g. service accounts) in any case |
 | backend.baseUrl | string | `""` | Public base address of the installation (`BASE_URL`), used for callbacks and links. Defaults to the first ingress host, or to the in-cluster service address |
 | backend.csp.url | string | `""` | Address of the core services of the CSP (`CSP_URL`, C3-M2). Empty uses the built-in CSP stand-in |
 | backend.enabled | bool | `true` | Whether the Dataspace Management Service (backend) is installed |

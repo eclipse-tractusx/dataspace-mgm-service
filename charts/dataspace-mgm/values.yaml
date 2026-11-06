@@ -90,6 +90,19 @@ backend:
     existingSecret: ""
     # -- Client secret of the service accounts in the Portal IAM; prefer `existingSecret` in operated installations
     serviceClientSecret: ""
+  authorization:
+    # -- Requires an API key on the APIs of the installation under `/api/v1` (`API_AUTH_ENABLED`, ADR-0002).
+    # Disabled by default; the controllers keep their own authorization (e.g. service accounts) in any case
+    enabled: false
+    apiKey:
+      # -- Header that carries the API key (`API_KEY_HEADER`)
+      header: "X-Api-Key"
+      # -- Name of an existing secret with the API key (`API_KEY`). If empty and `value` is set, the chart creates it
+      existingSecret: ""
+      # -- Key of the API key in the secret
+      secretKey: "API_KEY"
+      # -- The API key, at least 32 characters; prefer `existingSecret` in operated installations
+      value: ""
   signingKey:
     # -- Name of an existing secret with the signing key of the OSP (JWK, ES256) for the calls to the CSP
     # (`OSP_SIGNING_KEY_FILE`, C3-M2). Mounted read-only at `/app/secrets`

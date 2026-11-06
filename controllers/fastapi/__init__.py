@@ -29,14 +29,16 @@ folder per version, one file per controller with its own `router`:
 
     controllers/fastapi/routers/<category>/v1/<name>_api.py   router = APIRouter(prefix="/<category>")
 
-`include(app)` mounts every controller under `/api/v1`, e.g. `POST /api/v1/events/inbox`. The APIs of
+`include(app)` mounts every controller under `/api/v1`, e.g. `POST /api/v1/events/inbox`, behind the
+optional API key of `routers/authentication/auth_api.py` (ADR-0002, disabled by default). The APIs of
 the modules stay in `modules/<id>/router.py` under `/api/<module>` (FRAMEWORK 4.1); a new category
 gets its own folder here and one line in `v1_router()`.
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, Depends, FastAPI
 
+from .routers.authentication.auth_api import get_authentication_dependency
 from .routers.events.v1 import inbox_api
 
 API_V1 = "/api/v1"
@@ -49,7 +51,8 @@ TAGS = [
 
 
 def v1_router() -> APIRouter:
-    router = APIRouter(prefix=API_V1)
+    """All controllers under `/api/v1`, behind the API key when it is enabled (ADR-0002)."""
+    router = APIRouter(prefix=API_V1, dependencies=[Depends(get_authentication_dependency())])
     router.include_router(inbox_api.router)
     return router
 

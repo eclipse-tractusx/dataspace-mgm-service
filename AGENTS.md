@@ -95,6 +95,8 @@ Core Hub backend: one folder per API category and version, one file per controll
 `/api/v1` by `controllers/fastapi/__init__.py`. The first one is the event inbox
 `POST /api/v1/events/inbox` (FRAMEWORK 6, OP-54): split-out modules deliver their CloudEvents there.
 Module APIs never go there; they stay in `modules/<id>/router.py` under `/api/<module>`.
+Every new API follows [docs/developers/api-security.md](docs/developers/api-security.md): at least one layer of
+authentication, the controllers under `/api/v1` behind the optional API key (ADR-0002, disabled by default).
 
 ## Definition of done
 

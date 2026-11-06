@@ -145,3 +145,17 @@ Image of a component. Call with (dict "image" .Values.backend.image "ctx" $).
 {{- define "dataspace-mgm.image" -}}
 {{- printf "%s:%s" .image.repository (default .ctx.Chart.AppVersion .image.tag) }}
 {{- end }}
+
+{{/*
+Secret with the API key of the backend (ADR-0002): the existing secret, or the one the chart creates from
+backend.authorization.apiKey.value, or empty.
+*/}}
+{{- define "dataspace-mgm.backend.apiKeySecret" -}}
+{{- with .Values.backend.authorization.apiKey -}}
+{{- if .existingSecret -}}
+{{- .existingSecret -}}
+{{- else if .value -}}
+{{- printf "%s-api-key" (include "dataspace-mgm.backend.fullname" $) -}}
+{{- end -}}
+{{- end -}}
+{{- end }}

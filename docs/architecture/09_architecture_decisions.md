@@ -2,6 +2,7 @@
 
 | Date | Decision | Reason |
 |---|---|---|
+| 6 Nov 2026 | **API key as the minimum layer** of the APIs under `/api/v1`, disabled by default, with the API key manager of the Tractus-X SDK; an identity provider of the operator later ([ADR-0002](decisions/ADR-0002-api-security-baseline.md)). | At least one layer of authentication on every API, one approach with the Industry Core Hub. |
 | 6 Nov 2026 | **Events as CloudEvents 1.0** and the event inbox `POST /api/v1/events/inbox` for split-out modules ([ADR-0001](decisions/ADR-0001-events-as-cloudevents.md), proposal OP-54). | A standard format for transport and tooling; envelope and content separated; a module only publishes its own events. |
 | 28 Oct 2026 | **OSP 2.0:** every OSP runs its own portal installation, the CSP provides trust. PSP admission, delegation and sign-in services per PSP are dropped; CSP Connection (C3-M2) is new. | No single party should run the portal for all participants of a dataspace. |
 | 26 Oct 2026 | Callbacks from external systems use one service account per system with `private_key_jwt`, a client secret only as a transition (OP-22). | Strong authentication of external systems. |

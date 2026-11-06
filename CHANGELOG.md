@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Eclipse Dash IP check aligned with tractusx-testlab: `dependencies.yml` only checks, the new `dependencies-update.yml` regenerates `DEPENDENCIES` daily, requests IP reviews (secret `DASH_GITLAB_API_TOKEN`) and opens a pull request.
 - Hackathon scaffold: all modules of the spec mounted as stand-ins, Process Orchestration (C12-M1), test Portal IAM (Keycloak), EBW stack for tests with a real wallet, `demo.py` and the setup check `check.py`.
 - Event inbox `POST /api/v1/events/inbox` (FRAMEWORK 6, OP-54): receives the CloudEvents of split-out modules in structured or binary content mode, with the token of the service account of the publishing module, and delivers each `source` and `id` once. First controller of the new `controllers/` package: one folder per API category and version, as in the Industry Core Hub backend.
+- API key for the APIs of the installation under `/api/v1`, as in the Industry Core Hub, with the API key manager of the Eclipse Tractus-X SDK: `API_AUTH_ENABLED` (default `false`), `API_KEY_HEADER`, `API_KEY`, Helm values `backend.authorization.*` (ADR-0002). Security guidelines for APIs in `docs/developers/api-security.md`; ADR-0001 and ADR-0002 in `docs/architecture/decisions`.
 
 ### Changed
 

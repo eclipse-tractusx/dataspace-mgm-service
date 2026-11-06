@@ -93,6 +93,7 @@ kubectl create secret generic dataspace-mgm-signing-key \
 |---|---|---|
 | `backend.secret.existingSecret` | `SERVICE_CLIENT_SECRET` | Tokens of the service accounts `svc-<module>` in the Portal IAM |
 | `backend.signingKey.existingSecret` | `backend.signingKey.key` | `private_key_jwt` towards the CSP (C3-M2), mounted at `/app/secrets` |
+| `backend.authorization.apiKey.existingSecret` | `backend.authorization.apiKey.secretKey` (`API_KEY`) | API key of the APIs under `/api/v1`, only with `backend.authorization.enabled` |
 
 ## Configuration reference
 
@@ -108,6 +109,8 @@ The chart sets the following environment variables of the service; further confi
 | `SETTINGS_FILE` | `backend.installation.*` | Installation settings (FRAMEWORK 4.8) |
 | `OSP_SIGNING_KEY_FILE` | `backend.signingKey.*` | Signing key of the OSP |
 | `SERVICE_CLIENT_SECRET` | `backend.secret.*` | Client secret of the service accounts |
+| `API_AUTH_ENABLED`, `API_KEY_HEADER` | `backend.authorization.enabled`, `.apiKey.header` | API key on the APIs under `/api/v1` (default off, [api-security.md](../developers/api-security.md)) |
+| `API_KEY` | `backend.authorization.apiKey.existingSecret` or `.value` | The API key (secret, at least 32 characters) |
 
 The UI reads its runtime configuration from `/config.json` (`frontend.config.apiBaseUrl`, `frontend.config.environment`),
 so the same image runs in every environment.
