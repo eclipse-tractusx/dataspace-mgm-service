@@ -21,11 +21,15 @@ variable names, own test data and silent errors. The rules below prevent this.
 1. Work only in your team's folder `modules/<id>/` (for example `modules/c3_m1/`). Outside it, you
    may only add your module tests as `tests/test_<id>_*.py` (for example `tests/test_c3_m1_steps.py`).
 2. Never change another team's module, `portal_common/`, `controllers/`, `scaffold/`, `tools/`, `iam/`, `ebw/`, `testdata/`,
-   `config/` or `spec/`. If something there is wrong or missing, open an issue and work with the
+   `config/`, `spec/` or `../portal-frontend-spec`. If something there is wrong or missing, open an issue and work with the
    current state.
 3. The spec in `spec/` is the contract. Read `spec/FRAMEWORK.md`, then the `README.md`,
    `openapi.yaml` and `open-points.md` of your module. Paths, methods, field names, permissions,
    error types and events come from there. Do not invent names.
+   The frontend spec lives next to this repository in `../portal-frontend-spec` (read-only, like
+   `spec/`). Read the parts that use your module: the frontend calls your API with the paths, field
+   names, error types and events of `spec/`. If the frontend spec and `spec/` disagree, `spec/` is
+   the contract for the backend; note the difference in `modules/<id>/OPEN-QUESTIONS.md` (rule 10).
 4. Use `portal_common` for shared tasks. Never build your own version of them:
    - `tokens`: token check; `tokens.require_spec(module, method, path)` takes the permission from
      `x-permission` in `openapi.yaml`; `tokens.service_token(module)` for calls to neighbours.
@@ -126,6 +130,7 @@ Module APIs never go there; they stay in `modules/<id>/router.py` under `/api/<m
 
 ```bash
 git clone https://github.com/tx-arena-events/portal-backend-spec.git spec   # once; update: git -C spec pull --ff-only
+# frontend spec: one folder above, in ../portal-frontend-spec (update: git -C ../portal-frontend-spec pull --ff-only)
 uv sync                       # behind a TLS proxy: UV_SYSTEM_CERTS=1 uv sync (older uv: UV_NATIVE_TLS=1)
 uv run pytest -q              # all tests
 docker compose up -d          # once: Keycloak, the test Portal IAM of C2-M5 (iam/README.md)
