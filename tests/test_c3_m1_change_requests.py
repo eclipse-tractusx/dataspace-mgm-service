@@ -30,6 +30,7 @@ from portal_common import events
 from portal_common.problems import Problem
 
 from test_c3_m1_api import P1, P3, S1, S2, U1, U2, active, call, client  # noqa: F401
+from test_c3_m1_steps import _c1_m2  # noqa: F401  (fixture: C1-M2 as seen over the neighbour call)
 
 PDF = ("auszug.pdf", b"%PDF-1.7 Auszug", "application/pdf")
 S2_SUB = "5a1c0012-0000-4000-8000-000000000012"

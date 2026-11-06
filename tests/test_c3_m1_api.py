@@ -55,12 +55,15 @@ def client() -> TestClient:
     return TestClient(app, base_url=BASE)
 
 
+from test_c3_m1_steps import _c1_m2  # noqa: E402,F401  (fixture: C1-M2 as seen over the neighbour call)
+
+
 @pytest.fixture
 def active(client: TestClient) -> dict:
     """U1 and U2 ACTIVE with BPN, erika/max bound to U1, hans to U2."""
     from test_c3_m1_steps import A1, A2, seed, step
     seed(A1, U1)
-    seed(A2, U2, verification="DOCUMENTS", _attestation=None,
+    seed(A2, U2, verification="DOCUMENTS", attestation=None,
          companyData={"legalName": "Beispiel Logistik GmbH",
                       "address": {"streetName": "Hafenstraße", "streetNumber": "5",
                                   "postalCode": "68159", "city": "Mannheim", "countryCode": "DE"},

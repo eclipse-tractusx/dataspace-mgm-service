@@ -22,19 +22,24 @@
 #  SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
 #  Assisted-By: Hermes Agent (deepseek-v4.1-flash)
 #################################################################################
-"""C3-M1 steps and queries against the built-in stand-in of C1-M2 (README 8, 9, 13).
+"""C3-M1 steps and queries against C1-M2 as seen through its interface (README 8, 9, 11.1, 13).
 
-The applications of README 14 (A1, A2, A3, A5) are seeded into the C1-M2 stand-in, which is what
-`create-company` and `activate-company` read over the neighbour call (11.1).
+The applications of README 14 (A1, A2, A3, A5) are seeded into `APPLICATIONS`, in the shape of
+C1-M2's `ApplicationInternal` (C1-M2 openapi.yaml). The autouse fixture `_c1_m2` answers the two
+C1-M2 queries C3-M1 makes (`get_application_internal`, `list_agreements_internal`) from there; all
+other neighbour calls go through unchanged. The tests therefore never touch the internal storage of
+any C1-M2 implementation (the stand-in of the kit or Team 1's module alike). Other C3-M1 test files
+that seed applications import `_c1_m2` with `seed`.
 """
+import copy
 import json
 
 import pytest
 
-from modules.c1_m2 import interface as c1_m2
 from modules.c3_m1 import interface, store
-from portal_common import events
+from portal_common import events, neighbours
 from portal_common.problems import Problem
+from tools import testdata
 
 U1 = "c0000001-0000-4000-8000-000000000001"
 U2 = "c0000002-0000-4000-8000-000000000002"
@@ -55,17 +60,46 @@ ADDRESS = {"streetName": "Musterstraße", "streetNumber": "1", "postalCode": "70
            "city": "Stuttgart", "region": "BW", "countryCode": "DE"}
 
 
+APPLICATIONS: dict[str, dict] = {}   # applicationId -> ApplicationInternal, as C1-M2 answers it
+
+
 @pytest.fixture(autouse=True)
 def _state():
     interface.reset()
     yield
 
 
+@pytest.fixture(autouse=True)
+def _c1_m2(monkeypatch):
+    """C1-M2 as C3-M1 sees it over the neighbour call (11.1): the seeded applications and the
+    terms of the shared catalogue, in the shapes of C1-M2's openapi.yaml. Unknown applications are
+    `None`, as `neighbours.query` answers a 404 of the neighbour."""
+    original = neighbours.query
+    APPLICATIONS.clear()
+
+    def query(caller, target, function, /, **params):
+        if target == "c1-m2" and function == "get_application_internal":
+            found = APPLICATIONS.get(params.get("applicationId") or "")
+            return copy.deepcopy(found) if found is not None else None
+        if target == "c1-m2" and function == "list_agreements_internal":
+            if params.get("status") not in (None, "ACTIVE"):
+                return []
+            return [{k: x[k] for k in ("agreementKey", "version", "party", "scope", "companyRoles", "title",
+                                       "documentUrls")} | {"status": "ACTIVE"} for x in testdata.agreements()]
+        return original(caller, target, function, **params)
+
+    monkeypatch.setattr(neighbours, "query", query)
+    yield
+    APPLICATIONS.clear()
+
+
 def seed(application: str = A1, company: str = U1, **over) -> dict:
-    """Seed an application of README 14 into the C1-M2 stand-in."""
+    """Seed an application of README 14 as C1-M2 answers it (`ApplicationInternal`)."""
+    private = [key for key in over if key.startswith("_")]
+    assert not private, f"use the public fields of ApplicationInternal, not {private}"
     entry = {
         "id": application, "companyId": company, "kind": "ONBOARDING", "existingCompany": False,
-        "status": "SUBMITTED", "verification": "EBW", "_attestation": ATTESTATION,
+        "status": "SUBMITTED", "verification": "EBW", "attestation": ATTESTATION,
         "applicant": {"sub": P1},
         "companyData": {"legalName": "Beispiel Maschinenbau GmbH", "address": ADDRESS,
                         "identifiers": [{"type": "EBWOID", "value": "EBWOID-DE-0000000001",
@@ -77,7 +111,10 @@ def seed(application: str = A1, company: str = U1, **over) -> dict:
         "companyRoles": ["ACTIVE_PARTICIPANT"], "consents": CONSENTS,
     }
     entry.update(over)
-    c1_m2.applications[entry["id"]] = entry
+    roles = entry.get("companyRoles") or []
+    entry.setdefault("requiredAgreements", [] if entry["status"] == "CREATED" else [
+        {"agreementKey": x["agreementKey"], "version": x["version"]} for x in testdata.required_agreements(roles)])
+    APPLICATIONS[entry["id"]] = entry
     return entry
 
 
@@ -133,7 +170,7 @@ def test_create_company_refuses_a_reactivation():
 
 def test_create_company_needs_an_ebwoid_with_a_verification():
     seed()
-    c1_m2.applications[A1]["companyData"]["identifiers"] = [
+    APPLICATIONS[A1]["companyData"]["identifiers"] = [
         {"type": "VAT_ID", "value": "DE123456789", "source": "APPLICANT"}]
     with pytest.raises(Problem) as error:
         step("create_company", companyId=U1, applicationId=A1)
@@ -166,7 +203,7 @@ def test_activate_before_the_bpn():
 
 def test_assign_identifier_and_its_errors():
     seed()
-    seed(A3, U3, verification="DOCUMENTS", _attestation=None, companyRoles=["ACTIVE_PARTICIPANT"],
+    seed(A3, U3, verification="DOCUMENTS", attestation=None, companyRoles=["ACTIVE_PARTICIPANT"],
          companyData={"legalName": "Ohne Zustimmung GmbH", "address": ADDRESS,
                       "identifiers": [{"type": "VAT_ID", "value": "DE111111111", "source": "APPLICANT"}]},
          consents=[])
@@ -206,7 +243,7 @@ def test_activate_takes_over_the_consents():
 
 
 def test_activate_without_consents_keeps_requested():
-    seed(A3, U3, verification="DOCUMENTS", _attestation=None, consents=[])
+    seed(A3, U3, verification="DOCUMENTS", attestation=None, consents=[])
     step("create_company", companyId=U3, applicationId=A3)
     step("assign_identifier", companyId=U3, bpn="BPNL00000000U3OZ")
     with pytest.raises(Problem) as error:
@@ -217,7 +254,7 @@ def test_activate_without_consents_keeps_requested():
 
 # ---------------------------------------------------------------------------------- 13.6, 13.7
 def test_reject_company():
-    seed(A3, U3, verification="DOCUMENTS", _attestation=None, consents=[])
+    seed(A3, U3, verification="DOCUMENTS", attestation=None, consents=[])
     step("create_company", companyId=U3, applicationId=A3)
     reply = step("reject_company", companyId=U3)
     assert reply["result"]["status"] == "REJECTED"
@@ -237,7 +274,7 @@ def test_reject_company():
 # ------------------------------------------------------------------------------------ 13.23, 13.24
 def test_bulk_query_keeps_the_order_and_reports_the_missing():
     seed()
-    seed(A2, U2, verification="DOCUMENTS", _attestation=None,
+    seed(A2, U2, verification="DOCUMENTS", attestation=None,
          companyData={"legalName": "Beispiel Logistik GmbH", "address": ADDRESS,
                       "identifiers": [{"type": "VAT_ID", "value": "DE987654321", "source": "APPLICANT"}]},
          consents=[])

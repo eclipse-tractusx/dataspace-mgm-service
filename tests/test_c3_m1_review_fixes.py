@@ -42,7 +42,7 @@ from tools import test_iam
 from modules.c3_m1 import router as c3_router
 from test_c3_m1_api import BASE
 from test_c3_m1_attestation import _keys, claims, sign  # noqa: F401
-from test_c3_m1_steps import A1, A2, U3, seed, step
+from test_c3_m1_steps import A1, A2, U3, _c1_m2, seed, step  # noqa: F401  (_c1_m2: fixture)
 
 @pytest.fixture
 def client() -> TestClient:
@@ -122,7 +122,7 @@ def test_a_changed_name_still_needs_the_attestation(active):
 # ------------------------------------------------------ a declared core identifier is core data (high)
 def test_a_changed_euid_counts_as_core_data():
     interface.reset()
-    seed(A1, U1, verification="DOCUMENTS", _attestation=None, companyData={
+    seed(A1, U1, verification="DOCUMENTS", attestation=None, companyData={
         "legalName": "Beispiel Maschinenbau GmbH",
         "address": {"streetName": "Musterstraße", "streetNumber": "1", "postalCode": "70569",
                     "city": "Stuttgart", "countryCode": "DE"},

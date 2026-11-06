@@ -40,7 +40,7 @@ from portal_common import events
 from portal_common.problems import Problem
 
 from test_c3_m1_api import P3, active, call, client  # noqa: F401  (fixtures for the HTTP test)
-from test_c3_m1_steps import A1, U1, P1, U2, A2, seed, step
+from test_c3_m1_steps import A1, U1, P1, U2, A2, _c1_m2, seed, step  # noqa: F401  (_c1_m2: fixture)
 
 MODULE_DIR = Path(__file__).resolve().parents[1] / "modules" / "c3_m1"
 PRIVATE = json.loads((MODULE_DIR / "stub-ebw-key.json").read_text(encoding="utf-8"))["keys"][0]

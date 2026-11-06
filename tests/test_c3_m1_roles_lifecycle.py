@@ -31,7 +31,7 @@ from portal_common.problems import Problem
 
 from test_c3_m1_api import S2, U1, U2, active, call, client  # noqa: F401
 from test_c3_m1_attestation import _keys  # noqa: F401  (fixture: attestation environment)
-from test_c3_m1_steps import A1, A3, ADDRESS, CONSENTS, P1, U3, seed, step
+from test_c3_m1_steps import A1, A3, ADDRESS, CONSENTS, P1, U3, _c1_m2, seed, step  # noqa: F401  (_c1_m2: fixture)
 
 A5 = "a0000005-0000-4000-8000-000000000005"
 A6 = "a0000006-0000-4000-8000-000000000006"
@@ -148,7 +148,7 @@ def test_the_transfer_away_and_the_return(active):
     step("deactivate_company", companyId=U2, reason="TRANSFERRED")
     assert events.RELAY.log == []
 
-    seed(A7, U2, status="APPROVED", kind="TRANSFER", verification="DOCUMENTS", _attestation=None)
+    seed(A7, U2, status="APPROVED", kind="TRANSFER", verification="DOCUMENTS", attestation=None)
     assert step("assign_identifier", companyId=U2, bpn="BPNL00000000U2LG")["state"] == "DONE"
     assert step("reactivate_company", companyId=U2, applicationId=A7)["result"]["status"] == "ACTIVE"
 
