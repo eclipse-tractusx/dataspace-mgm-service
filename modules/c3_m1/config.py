@@ -57,7 +57,7 @@ DEFAULTS = {
     "CHANGE_REQUEST_MAX_DOCUMENTS": "3",
     "CHANGE_REQUEST_MAX_DOCUMENT_BYTES": "10485760",
     "STUB_APPLICATIONS_FILE": "stub-applications.json",
-    "ATTESTATION_JWKS_FILE": "stub-ebw-jwks.json",
+    "ATTESTATION_JWKS_FILE": "",   # tests only, no default: keys are never defaulted (FRAMEWORK 4.8)
 }
 
 
@@ -119,10 +119,11 @@ MODULE_DIR = Path(__file__).parent
 
 
 def attestation_jwks_file() -> Path | None:
-    """Tests only: the JWKS as a file; set means no fetch (README 11.2).
+    """Tests only: the JWKS as a file; set means no fetch (README 4, 11.2).
 
-    A bare name counts from the module folder (README 4 names `stub-ebw-jwks.json`, and that file
-    lives here), an absolute path as given.
+    No default: an installation takes the keys from `ATTESTATION_JWKS_URL`, the JWKS of its own
+    EBW-Connector (FRAMEWORK 4.8: keys are never defaulted; OPEN-QUESTIONS 7). A bare name counts
+    from the module folder, an absolute path as given.
     """
     path = _path(MODULE_DIR, value("ATTESTATION_JWKS_FILE"))
     return path if path else None

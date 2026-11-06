@@ -41,6 +41,7 @@ import time
 
 import httpx
 import jwt
+from portal_common import http
 from portal_common.problems import Problem
 
 from . import config
@@ -82,7 +83,8 @@ def _load_keys() -> list[dict]:
     if _cache["keys"] and now - float(_cache["fetched_at"]) < config.attestation_jwks_cache_seconds():
         return _cache["keys"]
     try:
-        response = httpx.get(config.attestation_jwks_url(), timeout=5.0)
+        # portal_common.http: also reaches an EBW-Connector registered in-process ({BASE_URL}/ebw)
+        response = http.request("GET", config.attestation_jwks_url(), timeout=5.0)
         response.raise_for_status()
         keys = response.json().get("keys") or []
     except (httpx.HTTPError, ValueError) as error:

@@ -24,13 +24,12 @@
 #################################################################################
 """The verification attestation of README 6.7 and its use in 7.3 (acceptance 11, 12).
 
-The key pair lives next to the module: `stub-ebw-jwks.json` holds the public JWK, `stub-ebw-key.json`
-the private one (README 14: "private part only in the test data"). T4 is signed with a second key
-that is not in the file.
+The key pair is generated when the tests start and its JWKS is written to a temporary file for
+`ATTESTATION_JWKS_FILE`; no key is stored anywhere (OPEN-QUESTIONS 7, 8). T4 is signed with a
+second key that is not in the JWKS.
 """
 import datetime as dt
 import json
-from pathlib import Path
 
 import jwt
 import pytest
@@ -38,21 +37,22 @@ import pytest
 from modules.c3_m1 import interface, store
 from portal_common import events
 from portal_common.problems import Problem
+from tools.keys import ec_jwk
 
 from test_c3_m1_api import P3, active, call, client  # noqa: F401  (fixtures for the HTTP test)
 from test_c3_m1_steps import A1, U1, P1, U2, A2, _c1_m2, seed, step  # noqa: F401  (_c1_m2: fixture)
 
-MODULE_DIR = Path(__file__).resolve().parents[1] / "modules" / "c3_m1"
-PRIVATE = json.loads((MODULE_DIR / "stub-ebw-key.json").read_text(encoding="utf-8"))["keys"][0]
-JWKS = MODULE_DIR / "stub-ebw-jwks.json"
+PRIVATE, PUBLIC = ec_jwk("ebw-test-2026-1")   # generated at start; no private key is stored
 
 
 @pytest.fixture(autouse=True)
-def _keys(monkeypatch):
+def _keys(monkeypatch, tmp_path):
+    jwks = tmp_path / "ebw-jwks.json"
+    jwks.write_text(json.dumps({"keys": [PUBLIC]}), encoding="utf-8")
     monkeypatch.setenv("ATTESTATION_ISSUER", "https://ebw-connector.example.org")
     monkeypatch.setenv("ATTESTATION_AUDIENCE", "portal-registration")
     monkeypatch.setenv("ATTESTATION_CLIENT_IDS", "demo-osp")
-    monkeypatch.setenv("ATTESTATION_JWKS_FILE", str(JWKS))
+    monkeypatch.setenv("ATTESTATION_JWKS_FILE", str(jwks))
     interface.reset()
     yield
 

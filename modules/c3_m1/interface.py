@@ -1113,7 +1113,11 @@ def reactivate_company(input: dict) -> dict:
             raise Problem(MODULE, 409, "invalid-state",
                           detail=f"kind {application.get('kind')} does not match the reason",
                           retryable=False)
-        if application.get("status") not in ("APPROVED", "COMPLETED"):
+        # C12 calls this step after ApplicationApproved and before complete-application (flows
+        # `reactivation` and `return`), so C1-M2 still has the application SUBMITTED; a repetition
+        # after the flow may find it COMPLETED. C1-M2's ApplicationStatus has no APPROVED: the
+        # approval is C1-M3's (C1-M2 openapi ApplicationStatus; OPEN-QUESTIONS 12).
+        if application.get("status") not in ("SUBMITTED", "COMPLETED"):
             raise Problem(MODULE, 409, "invalid-state",
                           detail=f"application {application.get('status')}", retryable=False)
 

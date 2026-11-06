@@ -216,7 +216,7 @@ def test_the_approval_event_carries_the_resulting_source(active):
 
 
 def test_the_reactivation_keeps_the_house_number_of_the_application(active):
-    seed("a0000005-0000-4000-8000-000000000009", U1, kind="REACTIVATION", status="APPROVED",
+    seed("a0000005-0000-4000-8000-000000000009", U1, kind="REACTIVATION", status="SUBMITTED",
          companyData={"legalName": "Beispiel Maschinenbau GmbH",
                       "address": {"streetName": "Musterstraße", "streetNumber": "7",
                                   "postalCode": "70569", "city": "Stuttgart", "countryCode": "DE"},
@@ -249,9 +249,10 @@ def test_the_readme_data_files_resolve_without_configuration(monkeypatch):
     from pathlib import Path
     assert config.stub_applications_file() is not None
     monkeypatch.delenv("ATTESTATION_JWKS_FILE")
-    assert config.attestation_jwks_file() is not None
-    assert config.attestation_jwks_file().name == "stub-ebw-jwks.json"
-    assert config.attestation_jwks_file().parent == Path(config.__file__).parent
+    # keys are never defaulted (FRAMEWORK 4.8, OPEN-QUESTIONS 7): without the variable the JWKS
+    # comes from ATTESTATION_JWKS_URL, the installation's own EBW-Connector
+    assert config.attestation_jwks_file() is None
+    assert not (Path(config.__file__).parent / "stub-ebw-key.json").exists()
 
 
 def test_an_address_part_needs_street_and_city(active):
@@ -345,9 +346,11 @@ def test_the_activation_DONE_lists_active_roles_only(active):
     assert answer["result"]["companyRoles"] == ["ACTIVE_PARTICIPANT", "APP_PROVIDER"]
 
 
-def test_the_reactivation_needs_an_approved_application(active):
+@pytest.mark.parametrize("status", ["CREATED", "WITHDRAWN", "DECLINED"])
+def test_the_reactivation_refuses_an_application_that_is_not_submitted(active, status):
+    """OPEN-QUESTIONS 12: SUBMITTED (during the flow) and COMPLETED (repetition) are accepted."""
     step("deactivate_company", companyId=U1, reason="MANUAL")
-    seed("a0000005-0000-4000-8000-000000000005", U1, kind="REACTIVATION", status="SUBMITTED")
+    seed("a0000005-0000-4000-8000-000000000005", U1, kind="REACTIVATION", status=status)
     with pytest.raises(Problem) as error:
         step("reactivate_company", companyId=U1, applicationId="a0000005-0000-4000-8000-000000000005")
     assert error.value.status == 409 and error.value.name == "invalid-state"

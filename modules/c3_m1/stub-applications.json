@@ -55,7 +55,7 @@
     },
     {
       "id": "a0000005-0000-4000-8000-000000000005", "companyId": "c0000001-0000-4000-8000-000000000001",
-      "kind": "REACTIVATION", "existingCompany": true, "status": "APPROVED", "verification": "EBW",
+      "kind": "REACTIVATION", "existingCompany": true, "status": "SUBMITTED", "verification": "EBW",
       "attestation": { "attestationId": "3f6c1e2a-7b4d-4e8f-9a51-2c0d6b8e4f99", "verifiedAt": "2026-11-06T09:00:00+00:00" },
       "applicant": { "sub": "5a1c0001-0000-4000-8000-000000000001" },
       "companyData": {
@@ -71,7 +71,7 @@
     },
     {
       "id": "a0000006-0000-4000-8000-000000000006", "companyId": "c0000002-0000-4000-8000-000000000002",
-      "kind": "REACTIVATION", "existingCompany": true, "status": "APPROVED", "verification": "DOCUMENTS",
+      "kind": "REACTIVATION", "existingCompany": true, "status": "SUBMITTED", "verification": "DOCUMENTS",
       "attestation": null,
       "applicant": { "sub": "5a1c0003-0000-4000-8000-000000000003" },
       "companyData": {
@@ -84,7 +84,7 @@
     },
     {
       "id": "a0000007-0000-4000-8000-000000000007", "companyId": "c0000002-0000-4000-8000-000000000002",
-      "kind": "TRANSFER", "existingCompany": true, "status": "APPROVED", "verification": "DOCUMENTS",
+      "kind": "TRANSFER", "existingCompany": true, "status": "SUBMITTED", "verification": "DOCUMENTS",
       "attestation": null,
       "applicant": { "sub": "5a1c0003-0000-4000-8000-000000000003" },
       "companyData": {
