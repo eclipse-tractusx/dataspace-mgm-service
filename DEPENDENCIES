@@ -2,22 +2,22 @@ pypi/pypi/-/annotated-doc/0.0.5, MIT, approved, #24552
 pypi/pypi/-/annotated-types/0.8.0, MIT, approved, clearlydefined
 pypi/pypi/-/anyio/4.15.1, MIT, approved, #32349
 pypi/pypi/-/certifi/2026.10.23, MPL-2.0, approved, #32561
-pypi/pypi/-/cffi/2.1.1, MIT-0, restricted, clearlydefined
+pypi/pypi/-/cffi/2.1.1, MIT-0 AND MIT, approved, #32980
 pypi/pypi/-/click/8.5.0, BSD-3-Clause, restricted, clearlydefined
 pypi/pypi/-/cryptography/50.0.2, Apache-2.0 AND BSD-3-Clause AND (BSD-3-Clause AND MIT), approved, #32334
-pypi/pypi/-/fastapi/0.162.0, , restricted, clearlydefined
+pypi/pypi/-/fastapi/0.162.0, MIT AND Apache-2.0 AND LicenseRef-scancode-unknown, restricted, #32978
 pypi/pypi/-/h11/0.16.0, MIT AND BSD-3-Clause, approved, #20895
 pypi/pypi/-/httpcore/1.0.9, BSD-3-Clause, approved, #20894
 pypi/pypi/-/httpx/0.28.1, BSD-3-Clause, approved, clearlydefined
 pypi/pypi/-/idna/3.20, BSD-3-Clause, approved, #32405
 pypi/pypi/-/opentelemetry-api/1.45.1, Apache-2.0, approved, #32474
-pypi/pypi/-/pycparser/3.12, , restricted, clearlydefined
-pypi/pypi/-/pydantic-core/2.50.1, , restricted, clearlydefined
-pypi/pypi/-/pydantic/2.14.1, , restricted, clearlydefined
-pypi/pypi/-/pyjwt/2.15.1, , restricted, clearlydefined
+pypi/pypi/-/pycparser/3.12, BSD-3-Clause AND LGPL-2.0-or-later, approved, #32979
+pypi/pypi/-/pydantic-core/2.50.1, MIT, approved, #32985
+pypi/pypi/-/pydantic/2.14.1, MIT, approved, #32987
+pypi/pypi/-/pyjwt/2.15.1, MIT, approved, #32976
 pypi/pypi/-/python-multipart/0.0.32, Apache-2.0, approved, #25779
 pypi/pypi/-/pyyaml/6.0.3, MIT, approved, #25755
-pypi/pypi/-/starlette/1.10.0, , restricted, clearlydefined
+pypi/pypi/-/starlette/1.10.0, BSD-3-Clause, approved, #32981
 pypi/pypi/-/typing-extensions/4.16.0, BSD-3-Clause AND Python-2.0 AND Python-2.0.1 AND PSF-2.0, approved, #32413
 pypi/pypi/-/typing-inspection/0.4.4, MIT, approved, #26752
-pypi/pypi/-/uvicorn/0.54.0, , restricted, clearlydefined
+pypi/pypi/-/uvicorn/0.54.0, BSD-3-Clause AND Python-2.0, restricted, #32984
