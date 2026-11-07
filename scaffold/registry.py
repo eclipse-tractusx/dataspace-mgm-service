@@ -32,7 +32,8 @@ Contract of a module folder (a team replaces only its folder):
   module sets neither;
 - an empty `__init__.py`, no top-level modules beside the folders.
 
-The list of modules comes from the spec (every folder with an `/api/<module>` base). A module
+The list of modules comes from the spec (every folder with an `/api/<module>` base), limited to
+`ENABLED_MODULES` when set (one runtime per module, ADR-0002). A module
 without a folder is still mounted, as the spec-driven fallback (every path answers 501, steps DONE).
 Every operation of the spec that a module does not implement is added from the fallback too.
 """
@@ -43,7 +44,7 @@ import importlib.util
 from dataclasses import dataclass
 from types import ModuleType
 
-from portal_common import spec
+from portal_common import runtime, spec
 
 LAST = ("c11-m1", "c12-m1")   # subscribers that react to the events of all others
 
@@ -58,6 +59,8 @@ class Entry:
 def load() -> list[Entry]:
     entries = []
     for mid in spec.modules():
+        if not runtime.is_enabled(mid):
+            continue   # served by another runtime, reached through MODULE_URLS
         name = f"modules.{mid.replace('-', '_')}.router"
         mod = importlib.import_module(name) if importlib.util.find_spec(name.rsplit(".", 1)[0]) and \
             importlib.util.find_spec(name) else None

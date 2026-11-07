@@ -1,0 +1,70 @@
+#################################################################################
+#  Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+#  See the NOTICE file(s) distributed with this work for additional
+#  information regarding copyright ownership.
+#
+#  This program and the accompanying materials are made available under the
+#  terms of the Apache License, Version 2.0 which is available at
+#  https://www.apache.org/licenses/LICENSE-2.0.
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#  WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#  License for the specific language governing permissions and limitations
+#  under the License.
+#
+#  AI Disclosure: This file was entirely AI-generated.
+#  The AI-generated portions are made available under CC0-1.0 and not subject
+#  to the project's license. The human contributor has reviewed and verified
+#  that the code is correct.
+#
+#  SPDX-License-Identifier: Apache-2.0 AND CC0-1.0
+#  Assisted-By: Claude Code (claude-opus-5-5)
+
+# PoC of the runtime split (ADR-0002): C1-M2 (Registration) and C3-M1 (Company Profile) as two pods
+# of the same image, behind one gateway, with the Keycloak of docker-compose.yml.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.poc.yml up -d --build
+#   uv run python deploy/poc/poc_check.py
+#
+# Synchronous calls go over HTTP with the service token (MODULE_URLS), events over the event inbox of the
+# peer (EVENT_SINKS). Modules that do not run here answer with their built-in stand-in (empty address).
+x-runtime: &runtime
+  image: tractusx/dataspace-mgm-service:poc
+  read_only: true
+  tmpfs: [/tmp]
+  depends_on: [iam]
+  environment: &runtime-env
+    TEST_TOOLS: "false"
+    IAM_URL: http://iam:8080/auth
+    IAM_REALM: CX-Central
+    IAM_ISSUER: http://localhost:8080/auth/realms/CX-Central
+    SETTINGS_FILE: /app/config/osp-a/installation.json
+    MODULE_URLS_DEFAULT: ""
+    MODULE_URLS: '{"c1-m2": "http://c1-m2:8000", "c3-m1": "http://c3-m1:8000"}'
+
+services:
+  c1-m2:
+    <<: *runtime
+    build: .   # built once, the other runtimes use the same image
+    environment:
+      <<: *runtime-env
+      ENABLED_MODULES: c1-m2
+      BASE_URL: http://c1-m2:8000
+      EVENT_SINKS: http://c3-m1:8000
+
+  c3-m1:
+    <<: *runtime
+    pull_policy: never
+    environment:
+      <<: *runtime-env
+      ENABLED_MODULES: c3-m1
+      BASE_URL: http://c3-m1:8000
+      EVENT_SINKS: http://c1-m2:8000
+
+  gateway:
+    image: nginxinc/nginx-unprivileged:1.27-alpine
+    ports: ["8000:8080"]
+    volumes: ["./deploy/poc/gateway.conf:/etc/nginx/conf.d/default.conf:ro"]
+    depends_on: [c1-m2, c3-m1]

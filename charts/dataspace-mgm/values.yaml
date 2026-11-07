@@ -185,6 +185,25 @@ backend:
   # -- Affinity of the backend pods
   affinity: {}
 
+# One runtime (Deployment + Service) per module or group of modules, from the image of the backend (ADR-0002).
+# Set `backend.enabled=false` when you use it. The settings of `backend.*` (IAM, CSP, secrets, env, probes,
+# security context) apply to every runtime. The ingress of the backend routes `/api/<module>` to the runtime.
+runtimes:
+  # -- Whether the runtimes below are installed
+  enabled: false
+  # -- Default number of replicas; modules with in-memory state need 1
+  replicaCount: 1
+  service:
+    # -- Service port of every runtime
+    port: 8000
+  # -- Runtimes: `name`, `modules` (ids served by the pod, `ENABLED_MODULES`), optional `replicaCount`,
+  # `resources` and `env`. Modules that run nowhere answer with their built-in stand-in
+  items: []
+  # - name: registration
+  #   modules: [c1-m2]
+  # - name: company-profile
+  #   modules: [c3-m1]
+
 frontend:
   # -- Whether the Dataspace Management UI is installed
   enabled: true

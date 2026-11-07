@@ -30,6 +30,8 @@ flowchart TB
 | Portal IAM | Keycloak with the realm of C2-M5; not part of the chart yet. |
 | Databases | Not needed yet (data in memory); one PostgreSQL database per module will be added. |
 
+**Runtime per module (ADR-0002).** The same backend image can run as one pod per module: `ENABLED_MODULES` selects the modules, `MODULE_URLS` addresses the neighbours, `EVENT_SINKS` forwards events to the other runtimes' event inbox, and the ingress routes `/api/<module>` to the right service. Enable it with `runtimes.enabled` in the chart; try it with `docker-compose.poc.yml` (C1-M2 and C3-M1).
+
 Installation and configuration are described in [INSTALL.md](../../INSTALL.md) and the [admin guide](../admin/README.md).
 
 ## NOTICE
